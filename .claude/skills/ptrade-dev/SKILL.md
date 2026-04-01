@@ -75,7 +75,6 @@ on_trade_response(context, trade_list)  # optional — trade callback (live only
 
 ### initialize-ONLY APIs (setup functions)
 ```
-set_universe(securities)          # Set stock pool
 set_benchmark(benchmark)          # Set benchmark index
 set_commission(commission)        # Set commission (backtest only)
 set_fixed_slippage(slippage)      # Set fixed slippage (backtest only)
@@ -94,14 +93,17 @@ create_dir(user_path)             # Create directory (live only)
 
 ### handle_data / tick_data APIs (trading functions)
 ```
+set_universe(securities)                            # Set/update stock pool (also in initialize/before_trading_start)
 order(security, amount, limit_price=None)           # Buy/sell by amount
 order_target(security, target_amount, limit_price=None)  # Target amount
 order_value(security, value, limit_price=None)      # Buy/sell by value
 order_target_value(security, target_value, limit_price=None)  # Target value
 order_market(security, amount)                      # Market order (live only)
-cancel_order(order_id)                              # Cancel order
+cancel_order(order_id)                              # Cancel order (also in on_order_response)
 cancel_order_ex(order_id)                           # Cancel order extended (live)
 order_tick(security, amount, limit_price, tick_type) # Tick order (live only)
+get_snapshot(security_list)                         # Realtime snapshot (live only)
+get_gear_price(security_list)                       # Level quotes (live only)
 ```
 
 ### after_trading_end APIs
@@ -111,8 +113,8 @@ after_trading_cancel_order(order_id)                # Cancel after-hours (live)
 get_trades_file()                                   # Get trade file (backtest)
 get_deliver(start_date, end_date)                   # Delivery records (live)
 get_fundjour(start_date, end_date)                  # Fund journal (live)
-send_email(...)                                     # Send email (live)
-send_qywx(...)                                      # Send WeChat (live)
+send_email(...)                                     # Send email (live, also in on_order/on_trade_response)
+send_qywx(...)                                      # Send WeChat (live, also in on_order/on_trade_response)
 ```
 
 ### Universal APIs (callable from ANY lifecycle function)
@@ -120,8 +122,6 @@ send_qywx(...)                                      # Send WeChat (live)
 # Market data
 get_history(count, frequency, field, security_list, fq, include, fill, is_dict, start_date, end_date)
 get_price(security, start_date, end_date, frequency, fields, count)
-get_snapshot(security_list)         # Live only, handle_data/tick_data
-get_gear_price(security_list)      # Live only, handle_data/tick_data
 
 # Trading info
 get_position(security)             # Get position for one stock
@@ -275,13 +275,12 @@ get_price(
 1. **Calling `order()` in `initialize()`** — Trading functions only work in `handle_data`/`tick_data`
 2. **Using `set_commission()` in `handle_data()`** — Setup functions only work in `initialize()`
 3. **Assuming `data[security]` always exists** — Only stocks in `set_universe()` are in `data`
-4. **Forgetting T+1 rule** — `pos.enable_amount` may be 0 for stocks bought today
+4. **Forgetting T+1 rule** — `pos.enable_amount` may be 0 for stocks bought today; always check before selling
 5. **Using `.XSHG`/`.XSHE` codes with `order()`** — Use `.SS`/`.SZ` format for orders
-6. **Not checking `pos.enable_amount` before selling** — Will fail if no sellable shares
-7. **Calling `get_snapshot()` in backtest** — Only available in live trading
-8. **Using f-strings** — PTrade does NOT support f-strings!
-9. **`get_history` with `include=True`** — Current bar data may be incomplete
-10. **Negative amount in `order()`** — Negative = sell, positive = buy
+6. **Calling `get_snapshot()` in backtest** — Only available in live trading
+7. **Using f-strings** — PTrade does NOT support f-strings!
+8. **`get_history` with `include=True`** — Current bar data may be incomplete
+9. **Negative amount in `order()`** — Negative = sell, positive = buy
 
 ## SIMTRADELAB LOCAL-ONLY DIFFERENCES
 
