@@ -17,6 +17,15 @@ A modular Claude Skill collection designed for task automation, document parsing
   - Handle metadata extraction and content cleaning
   - Support for various webpage formats
 
+### Quantitative Trading
+
+- **[ptrade-dev](.claude/skills/ptrade-dev/)** - PTrade/SimTradeLab strategy development guardrails
+  - Inline PTrade API reference (150+ functions, 11 objects)
+  - Platform constraint enforcement (no f-string, no import io/sys)
+  - Lifecycle function validation (which API can be called where)
+  - Common mistake prevention (10 critical error patterns)
+  - get_history / get_price detailed usage and return types
+
 ### Skill Development
 
 - **[skill-creator](.claude/skills/skill-creator/README.md)** - Comprehensive toolkit for creating Claude Skills
